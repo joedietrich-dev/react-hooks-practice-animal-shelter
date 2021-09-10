@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Filters from "./Filters";
 import PetBrowser from "./PetBrowser";
@@ -6,6 +6,25 @@ import PetBrowser from "./PetBrowser";
 function App() {
   const [pets, setPets] = useState([]);
   const [filters, setFilters] = useState({ type: "all" });
+
+  useEffect(() => {
+    fetch(`http://localhost:3001/pets`)
+      .then(res => res.json())
+      .then(setPets);
+  }, [])
+
+  const handleOnChangeType = (type) => {
+    setFilters(type);
+  }
+  const handleOnFindPetsClick = () => {
+    const search = filters === "all" ? '' : `?type=${filters}`
+    fetch(`http://localhost:3001/pets${search}`)
+      .then(res => res.json())
+      .then(setPets);
+  }
+  const handleOnAdoptPet = (petId) => {
+    setPets(pets.map(pet => pet.id === petId ? { ...pet, isAdopted: true } : pet))
+  }
 
   return (
     <div className="ui container">
@@ -15,10 +34,13 @@ function App() {
       <div className="ui container">
         <div className="ui grid">
           <div className="four wide column">
-            <Filters />
+            <Filters
+              onChangeType={handleOnChangeType}
+              onFindPetsClick={handleOnFindPetsClick}
+            />
           </div>
           <div className="twelve wide column">
-            <PetBrowser />
+            <PetBrowser pets={pets} onAdoptPet={handleOnAdoptPet} />
           </div>
         </div>
       </div>
